@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 
 class ClientController extends Controller
@@ -14,7 +15,9 @@ class ClientController extends Controller
      */
     public function index()
     {
-        //
+        $clients = Client::paginate(5);
+
+        return view('client.index') -> with('clients', $clients);
     }
 
     /**
@@ -24,7 +27,7 @@ class ClientController extends Controller
      */
     public function create()
     {
-        //
+        return view('client.form');
     }
 
     /**
@@ -35,7 +38,16 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request -> validate([
+            'name' => 'required|max:15',
+            'due' => 'required|gte:1'
+        ]);
+
+        $client = Client::create($request-> only('name','due','comments'));
+
+        Session::flash('mensaje', 'Registro creado con Exito!');
+
+        return redirect()->route('client.index');
     }
 
     /**
@@ -57,7 +69,7 @@ class ClientController extends Controller
      */
     public function edit(Client $client)
     {
-        //
+        return view('client.form') -> with('client', $client);
     }
 
     /**
@@ -69,7 +81,19 @@ class ClientController extends Controller
      */
     public function update(Request $request, Client $client)
     {
-        //
+        $request -> validate([
+            'name' => 'required|max:15',
+            'due' => 'required|gte:1'
+        ]);
+
+        $client -> name = $request['name'];
+        $client -> due = $request['due'];
+        $client -> comments = $request['comments'];
+        $client -> save();
+
+        Session::flash('mensaje', 'Registro Editado con Exito!');
+
+        return redirect()->route('client.index');
     }
 
     /**
@@ -80,6 +104,8 @@ class ClientController extends Controller
      */
     public function destroy(Client $client)
     {
-        //
+        $client -> delete();
+        Session::flash('mensaje', 'Registro Eliminado con Exito!');
+        return redirect()->route('client.index');
     }
 }
